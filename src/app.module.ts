@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CareSheetsModule } from './modules/care-sheets/care-sheets.module';
 import { SurgicalRecordsModule } from './modules/surgical-records/surgical-records.module';
+import { TreatmentSheetsModule } from './modules/treatment-sheets/treatment-sheets.module';
 
 @Module({
   imports: [
@@ -26,7 +28,9 @@ import { SurgicalRecordsModule } from './modules/surgical-records/surgical-recor
       }),
       inject: [ConfigService],
     }),
+    CareSheetsModule,
     SurgicalRecordsModule,
+    TreatmentSheetsModule,
   ],
 })
 export class AppModule {}
