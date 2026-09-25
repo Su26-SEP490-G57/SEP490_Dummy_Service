@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CareSheetsModule } from './modules/care-sheets/care-sheets.module';
+import { HealthModule } from './modules/health/health.module';
 import { SurgicalRecordsModule } from './modules/surgical-records/surgical-records.module';
 import { TreatmentSheetsModule } from './modules/treatment-sheets/treatment-sheets.module';
 
@@ -29,6 +30,7 @@ import { TreatmentSheetsModule } from './modules/treatment-sheets/treatment-shee
       inject: [ConfigService],
     }),
     CareSheetsModule,
+    HealthModule,
     SurgicalRecordsModule,
     TreatmentSheetsModule,
   ],
