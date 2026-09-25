@@ -8,10 +8,13 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main",
-    "seed": "ts-node -r tsconfig-paths/register src/database/seeds/seed.ts"
+    "seed": "ts-node -r tsconfig-paths/register src/database/seeds/seed.ts",
+    "seed:prod": "node dist/database/seeds/seed.js",
+    "schema:drop": "typeorm schema:drop -d dist/data-source.js"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

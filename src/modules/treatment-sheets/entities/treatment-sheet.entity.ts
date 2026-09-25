@@ -1,4 +1,10 @@
-import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 /**
  * "Phiếu theo dõi điều trị" — a doctor's treatment progress sheet, stored in
@@ -7,7 +13,9 @@ import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from 
  * of the patient at the time the sheet was written.
  */
 @Entity('treatment_sheets')
-@Index('IDX_treatment_sheets_patient_code', ['patientCode', 'sheetNumber'], { unique: true })
+@Index('IDX_treatment_sheets_patient_code', ['patientCode', 'sheetNumber'], {
+  unique: true,
+})
 export class TreatmentSheet {
   @PrimaryGeneratedColumn({ name: 'sheet_id', type: 'int' })
   sheetId!: number;

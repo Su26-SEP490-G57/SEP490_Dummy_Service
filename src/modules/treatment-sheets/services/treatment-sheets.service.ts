@@ -36,12 +36,16 @@ export class TreatmentSheetsService {
    */
   create(dto: CreateTreatmentSheetDto): Promise<TreatmentSheet> {
     return this.dataSource.transaction(async (manager) => {
-      await manager.query('SELECT pg_advisory_xact_lock(hashtext($1))', [dto.patientCode]);
+      await manager.query('SELECT pg_advisory_xact_lock(hashtext($1))', [
+        dto.patientCode,
+      ]);
       const row = await manager
         .getRepository(TreatmentSheet)
         .createQueryBuilder('s')
         .select('COALESCE(MAX(s.sheet_number), 0)', 'max')
-        .where('s.patient_code = :patientCode', { patientCode: dto.patientCode })
+        .where('s.patient_code = :patientCode', {
+          patientCode: dto.patientCode,
+        })
         .getRawOne<{ max: string | number }>();
 
       return manager.getRepository(TreatmentSheet).save({

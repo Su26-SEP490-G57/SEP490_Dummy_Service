@@ -1,0 +1,30 @@
+services:
+  his-dev:
+    image: ${APP_IMAGE_NAME}:${APP_IMAGE_TAG:-dev-latest}
+    container_name: his-dev
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DB_HOST: his-postgres
+      DB_PORT: 5432
+      DB_USER: his_dev
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: his_dev
+    networks:
+      # his-dev: private link to his-postgres
+      # poms-dev: lets poms-api-dev and poms-nginx reach this service as his-dev:4000
+      - his-dev
+      - poms-dev
+    healthcheck:
+      test: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:4000/api || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+networks:
+  his-dev:
+    external: true
+  poms-dev:
+    external: true

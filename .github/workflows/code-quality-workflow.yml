@@ -1,0 +1,20 @@
+name: Code Quality Workflow
+
+on:
+  workflow_call:
+
+jobs:
+  check_format:
+    name: Check Code Format
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Project
+        uses: ./.github/actions/setup-project
+
+      - name: Check Format
+        run: npm run format:check

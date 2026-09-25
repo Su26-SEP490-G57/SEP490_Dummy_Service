@@ -30,11 +30,27 @@ export class CreateCareSheetDto {
 
   @ApiProperty() @IsString() @IsNotEmpty() @MaxLength(64) patientCode!: string;
   @ApiProperty() @IsString() @IsNotEmpty() @MaxLength(255) patientName!: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(255) facility?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(255) department?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(64) admissionNumber?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  facility?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  department?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  admissionNumber?: string;
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) age?: number;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(10) gender?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  gender?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(50) room?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(50) bed?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() diagnosis?: string;
@@ -50,7 +66,11 @@ export class CreateCareSheetDto {
   @IsObject()
   content!: Record<string, string>;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(255) nurseName?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  nurseName?: string;
 }
 
 export class CareSheetDto {

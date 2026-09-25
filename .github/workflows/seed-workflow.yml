@@ -1,0 +1,91 @@
+name: Seed Database Workflow (DEV ONLY)
+
+permissions:
+  deployments: write
+  actions: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      drop_db:
+        description: '🔥 HARD RESET: Wipe database schema and rebuild it from scratch before seeding?'
+        required: true
+        type: boolean
+        default: false
+
+concurrency:
+  group: his-db-maintenance-dev
+  cancel-in-progress: false
+
+jobs:
+  auto_approve:
+    name: Auto Approve If Manual Trigger
+    runs-on: ubuntu-latest
+    steps:
+      - name: Auto Approve If Manual Trigger
+        uses: activescott/automate-environment-deployment-approval@v1.0.6
+        with:
+          github_token: ${{ secrets.AUTO_APPROVE_TOKEN }}
+          environment_allow_list: |
+            dev
+          actor_allow_list: |
+            WhiteAngel2406
+            BinhH12
+            fonghtdev
+            giangdoit123
+            lucif3r2003
+
+  execute_seed:
+    name: Reset and Seed Database
+    runs-on: ubuntu-latest
+    environment: dev
+
+    steps:
+      - name: Execute Seeding Script via SSH
+        uses: appleboy/ssh-action@v1.2.5
+        env:
+          APP_IMAGE_NAME: ${{ vars.APP_IMAGE_NAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          envs: APP_IMAGE_NAME,DB_PASSWORD
+          script: |
+            set -e
+
+            TARGET_DIR="/var/www/his"
+            cd $TARGET_DIR
+
+            ENV_NAME="dev"
+            COMPOSE_FILE="docker-compose.${ENV_NAME}.yml"
+            SERVICE_NAME="his-${ENV_NAME}"
+
+            DROP_DB_REQUESTED="${{ github.event.inputs.drop_db }}"
+
+            echo "🔍 [CI/CD] Verifying infrastructure configuration for environment: $ENV_NAME..."
+
+            if [ ! -f "$COMPOSE_FILE" ]; then
+                echo "❌ [CI/CD Error] Configuration file $COMPOSE_FILE not found on VPS!"
+                exit 1
+            fi
+
+            if [ "$DROP_DB_REQUESTED" = "true" ]; then
+                echo "🔥 [CI/CD] [Hard Reset] Initiating complete schema purge for database: his_${ENV_NAME}..."
+                
+                # Drop and recreate schema public using the root credentials via postgres container
+                sudo docker exec -t his-postgres psql -U his_root_admin -d his_${ENV_NAME} -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT USAGE, CREATE ON SCHEMA public TO his_dev;"
+
+                # No migration step: the seed's DataSource runs TypeORM `synchronize`, which rebuilds the schema.
+            else
+                echo "ℹ️ [CI/CD] Preserving current database schema. Proceeding directly to data population..."
+            fi
+
+            echo "🚀 [CI/CD] [Seed] Launching transient container to run seed script..."
+
+            if docker compose -f $COMPOSE_FILE run --pull always --rm $SERVICE_NAME npm run seed:prod; then
+                echo "✅ [CI/CD Success] Database has been successfully wiped and re-seeded for environment: $ENV_NAME"
+            else
+                echo "❌ [CI/CD Failure] Seeding script crashed inside the container!"
+                exit 1
+            fi

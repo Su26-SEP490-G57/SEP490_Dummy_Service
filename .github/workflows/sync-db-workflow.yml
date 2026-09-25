@@ -1,0 +1,64 @@
+name: Database Environment Sync Workflow (To DEV)
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_env:
+        description: 'Select SOURCE environment (Where to PULL data FROM)'
+        required: true
+        type: choice
+        options:
+          - staging
+          - prod
+
+concurrency:
+  group: his-db-maintenance-dev
+  cancel-in-progress: false
+
+jobs:
+  sync_database:
+    name: Execute Unidirectional DB Sync
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Execute Sync via SSH
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+            umask 077
+
+            # Target is STRICTLY LOCKED to 'dev' to safeguard staging/prod environments
+            SRC_ENV="${{ github.event.inputs.source_env }}"
+            TGT_ENV="dev"
+
+            SRC_DB="his_${SRC_ENV}"
+            TGT_DB="his_${TGT_ENV}"
+
+            DB_USER="his_root_admin"
+            CONTAINER_NAME="his-postgres"
+            BACKUP_FILE="/tmp/sync_${SRC_DB}_to_${TGT_DB}.sql"
+
+            # Ensures the dump (potentially containing real patient data pulled
+            # from staging/prod) never lingers on the SSH host, even if a step
+            # below fails partway under `set -e`.
+            trap 'rm -f "$BACKUP_FILE"' EXIT
+
+            echo "🚀 [CI/CD] Initiating data sync process: [$SRC_DB] ──► [$TGT_DB]..."
+
+            echo "📦 [CI/CD] Dumping complete source database from $SRC_DB..."
+            sudo docker exec -t $CONTAINER_NAME pg_dump -U $DB_USER -d $SRC_DB > $BACKUP_FILE
+
+            echo "🔥 [CI/CD] [Hard Reset] Purging public schema on localized development target: $TGT_DB..."
+            sudo docker exec -t $CONTAINER_NAME psql -U $DB_USER -d $TGT_DB -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT USAGE, CREATE ON SCHEMA public TO his_dev;"
+
+            echo "📤 [CI/CD] Restoring full snapshot mirror into target database..."
+            sudo docker exec -i $CONTAINER_NAME psql -U $DB_USER -d $TGT_DB < $BACKUP_FILE
+
+            echo "✅ [CI/CD Success] Synchronization pipeline completed successfully!"

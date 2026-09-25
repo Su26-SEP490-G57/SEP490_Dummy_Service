@@ -14,24 +14,37 @@ export class TreatmentSheetsController {
   constructor(private readonly service: TreatmentSheetsService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Store a "Phiếu theo dõi điều trị" (sheet number assigned by HIS)' })
+  @ApiOperation({
+    summary: 'Store a "Phiếu theo dõi điều trị" (sheet number assigned by HIS)',
+  })
   @ApiResponse({ status: 201, type: TreatmentSheetDto })
-  async create(@Body() dto: CreateTreatmentSheetDto): Promise<TreatmentSheetDto> {
+  async create(
+    @Body() dto: CreateTreatmentSheetDto,
+  ): Promise<TreatmentSheetDto> {
     return TreatmentSheetDto.from(await this.service.create(dto));
   }
 
   @Get('patient/:patientCode')
   @ApiOperation({ summary: 'Treatment sheets of a patient, newest first' })
   @ApiResponse({ status: 200, type: TreatmentSheetListDto })
-  async getByPatient(@Param('patientCode') patientCode: string): Promise<TreatmentSheetListDto> {
+  async getByPatient(
+    @Param('patientCode') patientCode: string,
+  ): Promise<TreatmentSheetListDto> {
     const sheets = await this.service.findByPatientCode(patientCode);
-    return { data: sheets.map((s) => TreatmentSheetDto.from(s)), total: sheets.length };
+    return {
+      data: sheets.map((s) => TreatmentSheetDto.from(s)),
+      total: sheets.length,
+    };
   }
 
   @Get('patient/:patientCode/next-number')
-  @ApiOperation({ summary: 'Sheet number the next sheet of this patient will get' })
+  @ApiOperation({
+    summary: 'Sheet number the next sheet of this patient will get',
+  })
   @ApiResponse({ status: 200, type: NextSheetNumberDto })
-  async nextNumber(@Param('patientCode') patientCode: string): Promise<NextSheetNumberDto> {
+  async nextNumber(
+    @Param('patientCode') patientCode: string,
+  ): Promise<NextSheetNumberDto> {
     return { sheetNumber: await this.service.nextSheetNumber(patientCode) };
   }
 }

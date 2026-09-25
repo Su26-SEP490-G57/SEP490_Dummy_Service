@@ -41,11 +41,21 @@ export class SurgicalRecord {
   procedureName!: string;
 
   /** ICD-9-CM-style procedure code, e.g. "17.33". */
-  @Column({ name: 'procedure_code', type: 'varchar', length: 20, nullable: true })
+  @Column({
+    name: 'procedure_code',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+  })
   procedureCode!: string | null;
 
   /** Surgical approach: 'OPEN' | 'LAPAROSCOPIC' | 'ROBOTIC'. */
-  @Column({ name: 'surgical_approach', type: 'varchar', length: 20, nullable: true })
+  @Column({
+    name: 'surgical_approach',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+  })
   surgicalApproach!: string | null;
 
   /** Whether a gastrointestinal anastomosis was performed. */
@@ -56,7 +66,12 @@ export class SurgicalRecord {
   @Column({ name: 'operated_at', type: 'timestamp' })
   operatedAt!: Date;
 
-  @Column({ name: 'attending_surgeon', type: 'varchar', length: 100, nullable: true })
+  @Column({
+    name: 'attending_surgeon',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
   attendingSurgeon!: string | null;
 
   @Column({ name: 'ward_code', type: 'varchar', length: 20, nullable: true })
@@ -66,10 +81,20 @@ export class SurgicalRecord {
   bedNumber!: string | null;
 
   /** Discharge status: 'IN_HOSPITAL' | 'DISCHARGED' | 'TRANSFERRED'. */
-  @Column({ name: 'discharge_status', type: 'varchar', length: 20, nullable: true })
+  @Column({
+    name: 'discharge_status',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+  })
   dischargeStatus!: string | null;
 
-  @Column({ name: 'contact_phone', type: 'varchar', length: 20, nullable: true })
+  @Column({
+    name: 'contact_phone',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+  })
   contactPhone!: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })

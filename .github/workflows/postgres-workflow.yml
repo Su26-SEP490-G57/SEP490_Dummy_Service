@@ -1,0 +1,127 @@
+name: Postgres Workflow
+description: Workflow to manage PostgreSQL deployment and initialization
+
+on:
+  push:
+    branches:
+      - 'SEP490-*'
+      - main
+    paths:
+      - 'resources/postgres/**'
+      - '.github/workflows/postgres-workflow.yml'
+      - '.github/actions/**'
+
+  workflow_dispatch:
+    inputs:
+      force_deploy_without_merge:
+        description: 'Set this to true to FORCE DEPLOY this without having to merge to main'
+        type: boolean
+        default: false
+
+jobs:
+  check_syntax:
+    name: Validate Initialization Script Syntax
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Check Shell Script Syntax
+        run: |
+          echo "🔍 Validating bash script syntax..."
+          bash -n ${{ github.workspace }}/resources/postgres/init-db.sh
+          echo "✅ Script syntax is valid!"
+
+  deploy_postgres:
+    name: Deploy HIS Postgres Instance
+    needs: check_syntax
+    runs-on: ubuntu-latest
+    if: |
+      github.ref == 'refs/heads/main' ||
+      inputs.force_deploy_without_merge == true
+
+    concurrency:
+      group: his-ssh-deploy-postgres
+      queue: max
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Compress Postgres directory
+        run: |
+          cd resources
+          tar -czf ../postgres.tar.gz postgres
+
+      - name: Write SSH Deploy Key
+        run: |
+          umask 077
+          cat > /tmp/his_ssh_deploy_key <<'EOF'
+          ${{ secrets.SSH_KEY }}
+          EOF
+
+      - name: Upload Postgres Artifact via SSH
+        uses: ./.github/actions/retry-scp
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key_path: /tmp/his_ssh_deploy_key
+          source: 'postgres.tar.gz'
+          target: '/var/www/his-postgres/'
+
+      - name: Upload Healthcheck script via SSH
+        uses: ./.github/actions/retry-scp
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key_path: /tmp/his_ssh_deploy_key
+          source: 'resources/scripts/check-health.sh'
+          target: '/var/www/his-postgres/'
+
+      - name: Extract & Update Postgres Container
+        uses: ./.github/actions/retry-ssh
+        env:
+          SUPER_POSTGRES_PASSWORD: ${{ secrets.SUPER_POSTGRES_PASSWORD }}
+          DEV_DB_PASSWORD: ${{ secrets.DEV_DB_PASSWORD }}
+          STAGING_DB_PASSWORD: ${{ secrets.STAGING_DB_PASSWORD }}
+          PROD_DB_PASSWORD: ${{ secrets.PROD_DB_PASSWORD }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key_path: /tmp/his_ssh_deploy_key
+          envs: SUPER_POSTGRES_PASSWORD,DEV_DB_PASSWORD,STAGING_DB_PASSWORD,PROD_DB_PASSWORD
+          script: |
+            set -e
+
+            docker network create his-dev || true
+            docker network create his-staging || true
+            docker network create his-prod || true
+
+            TARGET_DIR="/var/www/his-postgres"
+            cd $TARGET_DIR
+
+            echo "📦 Extracting Postgres deployment files..."
+            tar -xzf postgres.tar.gz --strip-components=1
+            rm postgres.tar.gz
+
+            chmod +x init-db.sh
+
+            echo "🚀 Applying Postgres configuration..."
+            export SUPER_POSTGRES_PASSWORD="$SUPER_POSTGRES_PASSWORD"
+            export DEV_DB_PASSWORD="$DEV_DB_PASSWORD"
+            export STAGING_DB_PASSWORD="$STAGING_DB_PASSWORD"
+            export PROD_DB_PASSWORD="$PROD_DB_PASSWORD"
+
+            echo "📥 [CI/CD] Pulling latest Postgres image..."
+            docker compose -f docker-compose.postgres.yml pull
+
+            echo "🚀 Starting Postgres container..."
+            docker compose -f docker-compose.postgres.yml up -d
+
+            echo "🔍 Checking Postgres health..."
+            chmod +x ./resources/scripts/check-health.sh
+            ./resources/scripts/check-health.sh his-postgres 20 3
+
+            echo "✅ Postgres deployment step completed successfully!"

@@ -1,0 +1,45 @@
+name: Main Branch CI/CD Workflow
+
+permissions:
+  contents: read
+  packages: write
+  deployments: write
+  actions: write
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - 'tsconfig.build.json'
+      - 'nest-cli.json'
+      - 'resources/docker/Dockerfile'
+      - 'resources/docker/docker-compose.staging.yml'
+      - 'resources/scripts/check-health.sh'
+      - '.github/workflows/main-workflow.yml'
+      - '.github/workflows/build-workflow.yml'
+      - '.github/workflows/deploy-workflow.yml'
+      - '.github/workflows/code-quality-workflow.yml'
+      - '.github/actions/**'
+
+jobs:
+  build:
+    name: Build Application
+    uses: ./.github/workflows/build-workflow.yml
+
+  code_quality:
+    name: Verify Code Quality
+    needs: build
+    uses: ./.github/workflows/code-quality-workflow.yml
+
+  deploy_staging:
+    name: Deploy to Staging
+    needs: code_quality
+    uses: ./.github/workflows/deploy-workflow.yml
+    with:
+      environment: staging
+    secrets: inherit

@@ -1,4 +1,10 @@
-import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 /**
  * "Phiếu theo dõi và chăm sóc" (MS: 38/BV1) — Cấp 1 or Cấp 2-3, written by a
@@ -7,7 +13,9 @@ import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from 
  * field lives in `content`, keyed by the form-field keys the backend defines.
  */
 @Entity('care_sheets')
-@Index('IDX_care_sheets_patient_code', ['patientCode', 'sheetNumber'], { unique: true })
+@Index('IDX_care_sheets_patient_code', ['patientCode', 'sheetNumber'], {
+  unique: true,
+})
 export class CareSheet {
   @PrimaryGeneratedColumn({ name: 'sheet_id', type: 'int' })
   sheetId!: number;
@@ -37,7 +45,12 @@ export class CareSheet {
   department!: string | null;
 
   /** "Số vào viện" */
-  @Column({ name: 'admission_number', type: 'varchar', length: 64, nullable: true })
+  @Column({
+    name: 'admission_number',
+    type: 'varchar',
+    length: 64,
+    nullable: true,
+  })
   admissionNumber!: string | null;
 
   @Column({ name: 'age', type: 'int', nullable: true })

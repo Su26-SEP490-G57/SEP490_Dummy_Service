@@ -16,16 +16,66 @@ const PROCEDURES: Array<{
   approach: 'OPEN' | 'LAPAROSCOPIC' | 'ROBOTIC';
   anastomosis: boolean;
 }> = [
-  { name: 'Laparoscopic right hemicolectomy', code: '17.33', approach: 'LAPAROSCOPIC', anastomosis: true },
-  { name: 'Open anterior resection of rectum', code: '48.63', approach: 'OPEN', anastomosis: true },
-  { name: 'Laparoscopic sigmoidectomy', code: '17.36', approach: 'LAPAROSCOPIC', anastomosis: true },
-  { name: 'Low anterior resection', code: '48.62', approach: 'OPEN', anastomosis: true },
-  { name: 'Abdominoperineal resection', code: '48.5', approach: 'OPEN', anastomosis: false },
-  { name: 'Laparoscopic left hemicolectomy', code: '17.35', approach: 'LAPAROSCOPIC', anastomosis: true },
-  { name: 'Total colectomy with ileostomy', code: '45.8', approach: 'OPEN', anastomosis: false },
-  { name: 'Robotic low anterior resection', code: '48.62', approach: 'ROBOTIC', anastomosis: true },
-  { name: 'Laparoscopic appendectomy', code: '47.01', approach: 'LAPAROSCOPIC', anastomosis: false },
-  { name: 'Hartmann procedure', code: '48.69', approach: 'OPEN', anastomosis: false },
+  {
+    name: 'Laparoscopic right hemicolectomy',
+    code: '17.33',
+    approach: 'LAPAROSCOPIC',
+    anastomosis: true,
+  },
+  {
+    name: 'Open anterior resection of rectum',
+    code: '48.63',
+    approach: 'OPEN',
+    anastomosis: true,
+  },
+  {
+    name: 'Laparoscopic sigmoidectomy',
+    code: '17.36',
+    approach: 'LAPAROSCOPIC',
+    anastomosis: true,
+  },
+  {
+    name: 'Low anterior resection',
+    code: '48.62',
+    approach: 'OPEN',
+    anastomosis: true,
+  },
+  {
+    name: 'Abdominoperineal resection',
+    code: '48.5',
+    approach: 'OPEN',
+    anastomosis: false,
+  },
+  {
+    name: 'Laparoscopic left hemicolectomy',
+    code: '17.35',
+    approach: 'LAPAROSCOPIC',
+    anastomosis: true,
+  },
+  {
+    name: 'Total colectomy with ileostomy',
+    code: '45.8',
+    approach: 'OPEN',
+    anastomosis: false,
+  },
+  {
+    name: 'Robotic low anterior resection',
+    code: '48.62',
+    approach: 'ROBOTIC',
+    anastomosis: true,
+  },
+  {
+    name: 'Laparoscopic appendectomy',
+    code: '47.01',
+    approach: 'LAPAROSCOPIC',
+    anastomosis: false,
+  },
+  {
+    name: 'Hartmann procedure',
+    code: '48.69',
+    approach: 'OPEN',
+    anastomosis: false,
+  },
 ];
 
 const DIAGNOSES = [
@@ -53,10 +103,32 @@ const SEX = ['M', 'F'];
 
 /** Masked initials pool. */
 const INITIALS = [
-  'N.V.A', 'T.T.B', 'L.H.C', 'P.M.D', 'V.T.E', 'H.N.F', 'D.Q.G', 'B.T.H',
-  'C.V.I', 'M.T.K', 'N.H.L', 'T.V.M', 'L.T.N', 'P.H.O', 'V.M.P', 'H.T.Q',
-  'D.V.R', 'B.N.S', 'C.T.T', 'M.V.U', 'N.T.V', 'T.H.X', 'L.V.Y', 'P.T.Z',
-  'V.H.A', 'H.M.B',
+  'N.V.A',
+  'T.T.B',
+  'L.H.C',
+  'P.M.D',
+  'V.T.E',
+  'H.N.F',
+  'D.Q.G',
+  'B.T.H',
+  'C.V.I',
+  'M.T.K',
+  'N.H.L',
+  'T.V.M',
+  'L.T.N',
+  'P.H.O',
+  'V.M.P',
+  'H.T.Q',
+  'D.V.R',
+  'B.N.S',
+  'C.T.T',
+  'M.V.U',
+  'N.T.V',
+  'T.H.X',
+  'L.V.Y',
+  'P.T.Z',
+  'V.H.A',
+  'H.M.B',
 ];
 
 const RECORD_COUNT = 25;
@@ -120,7 +192,9 @@ async function run() {
   await repo.save(records);
 
   // eslint-disable-next-line no-console
-  console.log(`Seeded ${records.length} surgical records into ${process.env.DB_NAME}.`);
+  console.log(
+    `Seeded ${records.length} surgical records into ${process.env.DB_NAME}.`,
+  );
   await dataSource.destroy();
 }
 

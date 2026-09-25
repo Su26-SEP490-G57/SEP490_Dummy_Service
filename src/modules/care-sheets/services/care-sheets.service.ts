@@ -15,10 +15,16 @@ export class CareSheetsService {
 
   /** Sheets of one patient, newest first. */
   findByPatientCode(patientCode: string): Promise<CareSheet[]> {
-    return this.repo.find({ where: { patientCode }, order: { sheetNumber: 'DESC' } });
+    return this.repo.find({
+      where: { patientCode },
+      order: { sheetNumber: 'DESC' },
+    });
   }
 
-  async nextSheetNumber(patientCode: string, manager?: EntityManager): Promise<number> {
+  async nextSheetNumber(
+    patientCode: string,
+    manager?: EntityManager,
+  ): Promise<number> {
     const row = await (manager?.getRepository(CareSheet) ?? this.repo)
       .createQueryBuilder('s')
       .select('COALESCE(MAX(s.sheet_number), 0)', 'max')
@@ -33,9 +39,10 @@ export class CareSheetsService {
    */
   create(dto: CreateCareSheetDto): Promise<CareSheet> {
     return this.dataSource.transaction(async (manager) => {
-      await manager.query("SELECT pg_advisory_xact_lock(hashtext('care:' || $1))", [
-        dto.patientCode,
-      ]);
+      await manager.query(
+        "SELECT pg_advisory_xact_lock(hashtext('care:' || $1))",
+        [dto.patientCode],
+      );
       const sheetNumber = await this.nextSheetNumber(dto.patientCode, manager);
 
       return manager.getRepository(CareSheet).save({
