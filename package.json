@@ -12,7 +12,7 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main",
-    "seed": "ts-node -r tsconfig-paths/register src/database/seeds/seed.ts",
+    "seed": "node dist/database/seeds/seed.js",
     "seed:prod": "node dist/database/seeds/seed.js",
     "schema:drop": "typeorm schema:drop -d dist/data-source.js"
   },

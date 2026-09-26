@@ -7,7 +7,7 @@ import { SurgicalRecord } from '../../modules/surgical-records/entities/surgical
  * surgery, matching the capstone ERAS/POD context). Idempotent: it clears the
  * table and reinserts, so it can be re-run safely.
  *
- * Run with:  npm run seed
+ * Run with:  npm run build && npm run seed   (runs dist/database/seeds/seed.js)
  */
 
 const PROCEDURES: Array<{
@@ -183,13 +183,17 @@ function buildRecords(): SurgicalRecord[] {
 
 async function run() {
   await dataSource.initialize();
-  const repo = dataSource.getRepository(SurgicalRecord);
-
   const records = buildRecords();
 
-  // Idempotent reseed: clear then insert.
-  await repo.clear();
-  await repo.save(records);
+  // Idempotent reseed: truncate then insert, atomically, so a failed insert
+  // never leaves the table empty.
+  await dataSource.transaction(async (manager) => {
+    const { schema, tableName } =
+      manager.getRepository(SurgicalRecord).metadata;
+    const table = schema ? `"${schema}"."${tableName}"` : `"${tableName}"`;
+    await manager.query(`TRUNCATE TABLE ${table} RESTART IDENTITY CASCADE`);
+    await manager.insert(SurgicalRecord, records);
+  });
 
   // eslint-disable-next-line no-console
   console.log(
