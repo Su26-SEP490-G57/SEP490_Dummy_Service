@@ -45,7 +45,7 @@ npm install
 createdb SEP490_HIS
 #   or:  psql -U postgres -c 'CREATE DATABASE "SEP490_HIS";'
 #   or, if you use the capstone-backend docker Postgres:
-#        docker exec capstone-postgres createdb -U postgres SEP490_HIS
+#        docker exec postgres-local createdb -U postgres SEP490_HIS
 
 # 3. configure environment
 cp .env.example .env          # then edit DB credentials if needed
